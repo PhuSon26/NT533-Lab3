@@ -1,0 +1,50 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: solemate-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+  
+  redis:
+    image: redis:alpine
+    container_name: solemate-redis
+    restart: always
+    ports:
+      - "6369:6379"
+    volumes:
+      - redis_data:/data
+  
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: solemate-backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongodb:27017/solemate
+      - REDIS_URI=redis://redis:6379
+      - CLIENT_ORIGIN=*
+    depends_on:
+      - mongodb
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: solemate-frontend
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongodb_data:
+  redis_data:
